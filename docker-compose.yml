@@ -1,0 +1,42 @@
+version: "3"
+services:
+    db:
+        image: mysql
+        ports: 
+            - "3306:3306"
+        command: --default-authentication-plugin=mysql_native_password
+        environment:
+            MYSQL_DATABASE: dbname
+            MYSQL_PASSWORD: test
+            MYSQL_ROOT_PASSWORD: test 
+        volumes:
+            - ./dump:/docker-entrypoint-initdb.d
+            - ./conf:/etc/mysql/conf.d
+            - ./persistent:/var/lib/mysql
+        networks:
+            - default
+    www:
+        build: .
+        ports: 
+            - "80:80"
+        links:
+           - db
+        volumes:
+            - ./www:/var/www/html
+        networks:
+            - default   
+    jenkins:
+        user: root
+        image: jenkins/jenkins:alpine
+        ports:
+            - "8080:8080"
+            - "50000:50000"
+        links:
+           - www
+        volumes:
+            - ./jenkins_home:/var/jenkins_home
+          #  - /usr/local/bin/docker:/usr/bin/docker
+          #  - /var/run/docker.sock:/var/run/docker.sock
+        networks:
+            - default
+    
